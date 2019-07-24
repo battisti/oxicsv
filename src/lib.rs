@@ -1,10 +1,7 @@
-use lazy_static::lazy_static;
 use serde::Deserialize;
 use serde_json::json;
 
-lazy_static! {
-    pub static ref RECORDS: Vec<Record> = get_records();
-}
+static mut RECORDS: Option<Vec<Record>> = None;
 
 static CSV_DATA: &'static [u8; 43205] = include_bytes!("../data/opcua_signals.csv");
 
@@ -31,7 +28,17 @@ impl Record {
     }
 }
 
-fn get_records() -> Vec<Record> {
+pub fn set_records() -> () {
+    unsafe {
+        RECORDS = Some(parse_records());
+    }
+}
+
+pub fn get_records() -> &'static [Record] {
+    unsafe { RECORDS.as_ref().unwrap() }
+}
+
+fn parse_records() -> Vec<Record> {
     let rdr: &[u8] = CSV_DATA.as_ref();
     let mut reader = csv::Reader::from_reader(rdr);
 
@@ -39,7 +46,8 @@ fn get_records() -> Vec<Record> {
 }
 
 pub fn get_json_records() -> serde_json::Value {
-    let records: Vec<_> = RECORDS.iter().map(Record::to_json).collect();
+    let records = get_records();
+    let records: Vec<_> = records.iter().map(Record::to_json).collect();
 
     json!(records)
 }
@@ -50,11 +58,13 @@ mod test {
 
     #[test]
     fn should_read_all_records() {
+        set_records();
         assert_eq!(get_records().len(), 550);
     }
 
     #[test]
     fn should_deserialize_records() {
+        set_records();
         let metric_id = get_records().get(0).map(|r| r.metric_id.clone());
 
         assert_eq!(metric_id, Some(format!("053A0LBD07CP901XQ01")))
@@ -62,6 +72,7 @@ mod test {
 
     #[test]
     fn should_serialize_json() {
+        set_records();
         let actual = get_records().get(0).map(Record::to_json).unwrap();
 
         let expected = json!({

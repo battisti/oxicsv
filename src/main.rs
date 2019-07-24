@@ -9,13 +9,15 @@ fn index(_: HttpRequest) -> impl Responder {
 fn get(idx: web::Path<usize>) -> impl Responder {
     let index = idx.into_inner();
 
-    match oxicsv::RECORDS.get(index) {
+    match oxicsv::get_records().get(index) {
         Some(r) => HttpResponse::Ok().json(r.to_json()),
         None => HttpResponse::NotFound().body(format!("record {} not found", index)),
     }
 }
 
 fn main() {
+    oxicsv::set_records();
+
     HttpServer::new(|| {
         App::new()
             .route("/", web::get().to(index))
