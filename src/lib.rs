@@ -40,6 +40,18 @@ fn read_csv_from_path(path: &Path) -> Result<Vec<Record>, Box<dyn Error>> {
     Ok(reader.deserialize().filter_map(Result::ok).collect())
 }
 
+pub fn get_json_records() -> serde_json::Value {
+    let path = get_path_to_csv();
+
+    let records: Vec<_> = read_csv_from_path(&path)
+        .expect("could not read csv record")
+        .iter()
+        .map(Record::to_json)
+        .collect();
+
+    json!(records)
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
