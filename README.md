@@ -29,12 +29,3 @@ A PDF containing all slides can be found in the `slides` branch.
 
 The local web server for this tutorial runs 
 [here](http://127.0.0.1:12345).
-
-## Discussed Topics
-
-* lib.rs
-* env! macro
-* csv crate
-* serde deserialize magic
-* cargo workflow
-    * > cargo run
