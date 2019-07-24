@@ -30,8 +30,24 @@ A PDF containing all slides can be found in the `slides` branch.
 The local web server for this tutorial runs 
 [here](http://127.0.0.1:12345).
 
+# Cross Compiling
 
-# Discussed Topics
+Add target to cross compile to:
 
-* unsafe
-* no allocations for statics
+* > rustup target add <target>
+* > cargo build --target <target>
+
+Interesting targets:
+
+* x86_64-unknown-linux-gnu
+* x86_64-unknown-linux-musl
+* x86_64-pc-windows-gnu
+* x86_64-pc-windows-msvc
+* wasm32-unknown-unknown
+* wasm32-wasi
+* x86_64-apple-darwin
+* arm-unknown-linux-musleabi
+* armv7-apple-ios
+* arm-linux-androideabi
+
+    
