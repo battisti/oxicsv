@@ -2,15 +2,29 @@ use std::error::Error;
 use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
+use serde_json::json;
 
 #[derive(Debug, Deserialize)]
-struct Record {
+pub struct Record {
     metric_id: String,
     metric_unit: String,
     asset_id: String,
     opc_ns: u32,
     opc_id: String,
     notes: String,
+}
+
+impl Record {
+    pub fn to_json(&self) -> serde_json::Value {
+        let id = format!("ns={};id={}", self.opc_ns, self.opc_id);
+
+        json!({
+            "id": self.metric_id,
+            "unit": self.metric_unit,
+            "signalId": id,
+            "comment": self.notes,
+        })
+    }
 }
 
 fn get_path_to_csv() -> PathBuf {
@@ -57,5 +71,24 @@ mod test {
             .map(|r| r.metric_id.clone());
 
         assert_eq!(metric_id, Some(format!("053A0LBD07CP901XQ01")))
+    }
+
+    #[test]
+    fn should_serialize_json() {
+        let path = get_path_to_csv();
+        let actual = read_csv_from_path(&path)
+            .unwrap()
+            .get(0)
+            .map(Record::to_json)
+            .unwrap();
+
+        let expected = json!({
+             "id": "053A0LBD07CP901XQ01",
+            "unit": "bar",
+            "signalId": "ns=4;id=053 A0 LBD07 CP901%#_#%%#_#%XQ01",
+            "comment": "external - bar",
+        });
+
+        assert_eq!(expected, actual);
     }
 }
