@@ -1,7 +1,17 @@
-use csv::StringRecord;
 use std::error::Error;
-use std::fs::File;
 use std::path::{Path, PathBuf};
+
+use serde::Deserialize;
+
+#[derive(Debug, Deserialize)]
+struct Record {
+    metric_id: String,
+    metric_unit: String,
+    asset_id: String,
+    opc_ns: u32,
+    opc_id: String,
+    notes: String,
+}
 
 fn get_path_to_csv() -> PathBuf {
     let mut local_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -10,15 +20,14 @@ fn get_path_to_csv() -> PathBuf {
     local_path
 }
 
-fn read_csv_from_path(path: &Path) -> Result<Vec<StringRecord>, Box<dyn Error>> {
+fn read_csv_from_path(path: &Path) -> Result<Vec<Record>, Box<dyn Error>> {
     let mut reader = csv::Reader::from_path(path)?;
 
-    Ok(reader.records().filter_map(Result::ok).collect())
+    Ok(reader.deserialize().filter_map(Result::ok).collect())
 }
 
 #[cfg(test)]
 mod test {
-
     use super::*;
 
     #[test]
@@ -39,4 +48,14 @@ mod test {
         assert_eq!(records.len(), 550);
     }
 
+    #[test]
+    fn should_deserialize_records() {
+        let path = get_path_to_csv();
+        let metric_id = read_csv_from_path(&path)
+            .unwrap()
+            .get(0)
+            .map(|r| r.metric_id.clone());
+
+        assert_eq!(metric_id, Some(format!("053A0LBD07CP901XQ01")))
+    }
 }
