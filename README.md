@@ -26,3 +26,7 @@ For editing any plain text editor will do. I recommend either:
 * [Visual Studio Code](https://code.visualstudio.com/) with the Rust (rls) [extension](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust).
 
 A PDF containing all slides can be found in the `slides` branch.
+
+The local web server for this tutorial runs 
+[here](http://127.0.0.1:12345).
+
