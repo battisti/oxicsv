@@ -1,14 +1,15 @@
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Responder};
 
 fn index(_: HttpRequest) -> impl Responder {
-    let body = oxicsv::get_json_records();
+    let value = oxicsv::get_json_records();
 
-    HttpResponse::Ok().json(body)
+    HttpResponse::Ok().json(value)
 }
 
 fn get(idx: web::Path<usize>) -> impl Responder {
     let index = idx.into_inner();
-    match oxicsv::get_records().get(index) {
+
+    match oxicsv::RECORDS.get(index) {
         Some(r) => HttpResponse::Ok().json(r.to_json()),
         None => HttpResponse::NotFound().body(format!("record {} not found", index)),
     }

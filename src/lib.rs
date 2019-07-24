@@ -1,8 +1,13 @@
 use std::error::Error;
 use std::path::{Path, PathBuf};
 
+use lazy_static::lazy_static;
 use serde::Deserialize;
 use serde_json::json;
+
+lazy_static! {
+    pub static ref RECORDS: Vec<Record> = get_records();
+}
 
 #[derive(Debug, Deserialize)]
 pub struct Record {
@@ -40,14 +45,14 @@ fn read_csv_from_path(path: &Path) -> Result<Vec<Record>, Box<dyn Error>> {
     Ok(reader.deserialize().filter_map(Result::ok).collect())
 }
 
-pub fn get_records() -> Vec<Record> {
+fn get_records() -> Vec<Record> {
     let path = get_path_to_csv();
 
     read_csv_from_path(&path).expect("could not read csv record")
 }
 
 pub fn get_json_records() -> serde_json::Value {
-    let records: Vec<_> = get_records().iter().map(Record::to_json).collect();
+    let records: Vec<_> = RECORDS.iter().map(Record::to_json).collect();
 
     json!(records)
 }
