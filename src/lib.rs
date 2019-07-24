@@ -1,6 +1,3 @@
-use std::error::Error;
-use std::path::{Path, PathBuf};
-
 use lazy_static::lazy_static;
 use serde::Deserialize;
 use serde_json::json;
@@ -8,6 +5,8 @@ use serde_json::json;
 lazy_static! {
     pub static ref RECORDS: Vec<Record> = get_records();
 }
+
+static CSV_DATA: &'static [u8; 43205] = include_bytes!("../data/opcua_signals.csv");
 
 #[derive(Debug, Deserialize)]
 pub struct Record {
@@ -32,23 +31,11 @@ impl Record {
     }
 }
 
-fn get_path_to_csv() -> PathBuf {
-    let mut local_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    local_path.push("data");
-    local_path.push("opcua_signals.csv");
-    local_path
-}
-
-fn read_csv_from_path(path: &Path) -> Result<Vec<Record>, Box<dyn Error>> {
-    let mut reader = csv::Reader::from_path(path)?;
-
-    Ok(reader.deserialize().filter_map(Result::ok).collect())
-}
-
 fn get_records() -> Vec<Record> {
-    let path = get_path_to_csv();
+    let rdr: &[u8] = CSV_DATA.as_ref();
+    let mut reader = csv::Reader::from_reader(rdr);
 
-    read_csv_from_path(&path).expect("could not read csv record")
+    reader.deserialize().filter_map(Result::ok).collect()
 }
 
 pub fn get_json_records() -> serde_json::Value {
@@ -62,42 +49,20 @@ mod test {
     use super::*;
 
     #[test]
-    fn should_locate_csv_file() {
-        use std::fs::{metadata, Metadata};
-
-        let path = get_path_to_csv();
-        let is_file = metadata(&path).as_ref().map(Metadata::is_file).unwrap();
-
-        assert!(is_file);
-    }
-
-    #[test]
     fn should_read_all_records() {
-        let path = get_path_to_csv();
-        let records = read_csv_from_path(&path).unwrap();
-
-        assert_eq!(records.len(), 550);
+        assert_eq!(get_records().len(), 550);
     }
 
     #[test]
     fn should_deserialize_records() {
-        let path = get_path_to_csv();
-        let metric_id = read_csv_from_path(&path)
-            .unwrap()
-            .get(0)
-            .map(|r| r.metric_id.clone());
+        let metric_id = get_records().get(0).map(|r| r.metric_id.clone());
 
         assert_eq!(metric_id, Some(format!("053A0LBD07CP901XQ01")))
     }
 
     #[test]
     fn should_serialize_json() {
-        let path = get_path_to_csv();
-        let actual = read_csv_from_path(&path)
-            .unwrap()
-            .get(0)
-            .map(Record::to_json)
-            .unwrap();
+        let actual = get_records().get(0).map(Record::to_json).unwrap();
 
         let expected = json!({
              "id": "053A0LBD07CP901XQ01",
