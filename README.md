@@ -32,10 +32,21 @@ The local web server for this tutorial runs
 
 # Cross Compiling
 
+Install [cross](https://github.com/rust-embedded/cross) and [Docker](https://www.docker.com/).
+
+    > cargo install cross
+
 Add target to cross compile to:
 
-* > rustup target add <target>
-* > cargo build --target <target>
+    > rustup target add `<target>`
+
+Ensure the Docker daemon is running.
+
+    > sudo systemctl start docker
+
+Build the binary for you cross compile target.
+
+> cross build --target `<target>`
 
 Interesting targets:
 
